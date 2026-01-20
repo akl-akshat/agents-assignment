@@ -1,4 +1,6 @@
 import logging
+from intelligent_interrupt_handler import IntelligentInterruptionHandler
+from livekit.plugins.turn_detector.multilingual import MultilingualModel
 
 from dotenv import load_dotenv
 
@@ -101,6 +103,7 @@ async def entrypoint(ctx: JobContext):
         resume_false_interruption=True,
         false_interruption_timeout=1.0,
     )
+    IntelligentInterruptionHandler(session)
 
     # log metrics as they are emitted, and total usage after session is over
     usage_collector = metrics.UsageCollector()
