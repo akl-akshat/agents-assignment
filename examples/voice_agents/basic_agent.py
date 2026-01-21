@@ -1,6 +1,10 @@
+from dotenv import load_dotenv
+load_dotenv()
 import logging
 from intelligent_interrupt_handler import IntelligentInterruptionHandler
 from livekit.plugins.turn_detector.multilingual import MultilingualModel
+
+
 
 from dotenv import load_dotenv
 
@@ -18,12 +22,12 @@ from livekit.agents import (
 )
 from livekit.agents.llm import function_tool
 from livekit.plugins import silero
-from livekit.plugins.turn_detector.multilingual import MultilingualModel
 
 # uncomment to enable Krisp background voice/noise cancellation
 # from livekit.plugins import noise_cancellation
 
 logger = logging.getLogger("basic-agent")
+logging.basicConfig(level=logging.INFO)
 
 load_dotenv()
 
@@ -63,6 +67,26 @@ class MyAgent(Agent):
         logger.info(f"Looking up weather for {location}")
 
         return "sunny with a temperature of 70 degrees."
+
+    async def on_user_speech(self, ev):
+        text = ev.text.lower().strip()
+        logger.info(f"[USER SAID]: {text}")
+
+        # STOP command
+        if "stop" in text:
+            logger.info("[ACTION]: STOP detected")
+            await self.session.interrupt()
+            return
+
+        # Handle filler word "yeah"
+        if text == "yeah":
+            if self.session.is_speaking:
+                logger.info("[IGNORED]: 'yeah' while agent speaking")
+                return
+            else:
+                logger.info("[RESPONDED]: 'yeah' while silent")
+                await self.say("Yes?")
+                return
 
 
 server = AgentServer()
